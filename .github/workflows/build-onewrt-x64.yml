@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: build-onewrt-x64
+name: Build-Onewrt-x64
 
 on: 
   #push:
@@ -83,7 +83,7 @@ jobs:
 
     - name: Prepare Mixedwrt
       run: |
-        sudo chown -R runner:runner /home/runner/work/YAOF
+        sudo chown -R runner:runner /home/runner/work/onewrt
         cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
@@ -136,7 +136,6 @@ jobs:
         cd openwrt
         echo "Apply config..."
         #cp -rf ../SEED/x86-64/config.seed .config
-        cp -f devices/common/x86-64/config.seed .config
         
         cp -f devices/common/.config .config
         if [ -f "devices/x86-64/x64.config" ]; then
