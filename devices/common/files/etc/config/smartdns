@@ -1,0 +1,163 @@
+config smartdns
+	option prefetch_domain '1'
+	option serve_expired '1'
+	option coredump '0'
+	option port '6053'
+	option seconddns_port '5335'
+	option seconddns_enabled '1'
+	option seconddns_no_rule_addr '0'
+	option seconddns_no_rule_nameserver '0'
+	option seconddns_no_rule_ipset '0'
+	option seconddns_no_rule_soa '0'
+	option enabled '0'
+	option seconddns_server_group 'world'
+	option force_aaaa_soa '0'
+	option server_name 'china'
+	option tcp_server '1'
+	option seconddns_tcp_server '1'
+	option seconddns_no_speed_check '1'
+	option seconddns_no_dualstack_selection '1'
+	option seconddns_no_cache '1'
+	option rr_ttl_min '300'
+	option dualstack_ip_selection '1'
+	option cache_size '5120'
+	option ipv6_server '1'
+	option redirect 'dnsmasq-upstream'
+	list old_redirect 'dnsmasq-upstream'
+	list old_port '6053'
+	list old_enabled '1'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name '阿里DNS'
+	option ip '223.6.6.6'
+	option blacklist_ip '1'
+	option server_group 'china'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name '114DNS'
+	option ip '114.114.114.114'
+	option blacklist_ip '1'
+	option server_group 'china'
+
+config server
+	option name '百度 BaiduDNS'
+	option enabled '1'
+	option type 'udp'
+	option ip '180.76.76.76'
+	option blacklist_ip '1'
+	option server_group 'china'
+
+config server
+	option type 'udp'
+	option ip '119.29.29.29'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+	option name '腾讯公共DNS'
+
+config server
+	option name 'V2EX DNS'
+	option type 'udp'
+	option ip '199.91.73.222'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+
+config server
+	option name 'CNNIC SDNS'
+	option type 'udp'
+	option ip '1.2.4.8'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+
+config server
+	option name 'oneDNS'
+	option type 'udp'
+	option ip '117.50.11.11'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+
+config server
+	option name 'DNS 派电信/移动/铁通'
+	option type 'udp'
+	option ip '101.226.4.6'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+
+config server
+	option name 'DNS 派 联通'
+	option type 'udp'
+	option ip '123.125.81.6'
+	option blacklist_ip '1'
+	option server_group 'china'
+	option enabled '1'
+
+config server
+	option name '新加坡Linode'
+	option ip '199.91.73.222'
+	option type 'tls'
+	option server_group 'world'
+	option enabled '1'
+
+config server
+	option name 'Cloudflare DNS'
+	option ip '1.1.1.1'
+	option type 'tls'
+	option server_group 'world'
+	option enabled '1'
+
+config server
+	option name 'OpenDNS'
+	option ip '208.67.222.222'
+	option server_group 'world'
+	option enabled '1'
+	option type 'tls'
+
+config server
+	option name 'IBM Quad9'
+	option ip '9.9.9.9'
+	option server_group 'world'
+	option enabled '1'
+	option type 'tls'
+
+config server
+	option name 'Google DNS'
+	option type 'tls'
+	option server_group 'world'
+	option enabled '1'
+	option ip '8.8.8.8'
+
+config server
+	option name '百度ipv6 dns'
+	option type 'udp'
+	option server_group 'china'
+	option enabled '1'
+	option ip '2400:da00::6666'
+
+config server
+	option name '阿里ipv6 dns'
+	option type 'udp'
+	option server_group 'china'
+	option enabled '1'
+	option ip '2400:3200::1'
+
+config server
+	option name '天地互连 ipv6 dns'
+	option type 'udp'
+	option server_group 'china'
+	option enabled '1'
+	option ip '240C::6666'
+
+config server
+	option name '谷歌 vip6 dns'
+	option type 'tls'
+	option server_group 'world'
+	option enabled '1'
+	option ip '2001:4860:4860::8888'

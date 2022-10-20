@@ -1,0 +1,128 @@
+#!/bin/bash
+#=================================================
+# Description: Build OpenWrt using GitHub Actions 
+# Lisence: MIT
+# 参考以下资料：
+# Frome: https://github.com/garypang13/Actions-OpenWrt
+# Frome: https://github.com/P3TERX/Actions-OpenWrt
+# Frome: https://github.com/Lienol/openwrt-actions
+# Frome: https://github.com/svenstaro/upload-release-action
+# By YAOF 2020 https://www.yaof.org
+# https://github.com/yaof2
+#=================================================
+#添加固件版本描述。
+rm -Rf feeds/luci/themes/luci-theme-argon
+rm -Rf feeds/luci/applications/luci-app-zerotier
+#rm -Rf feeds/luci/applications/luci-app-qbittorrent
+#rm -Rf package/lean/qbittorrent
+
+# 修改登陆地址
+sed -i 's/192.168.1.1/192.168.8.1/g' package/base-files/files/bin/config_generate
+# 关闭禁止解析IPv6 DNS 记录
+sed -i '/option filter_aaaa 1/d' package/network/services/dnsmasq/files/dhcp.conf
+
+# 修改内核版本
+sed -i 's/KERNEL_PATCHVER:=5.15/KERNEL_PATCHVER:=5.4/g' target/linux/x86/Makefile
+
+
+#修改网络连接数
+sed -i 's/net.netfilter.nf_conntrack_max=65535/net.netfilter.nf_conntrack_max=105535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
+
+
+#git clone https://github.com/garypang13/openwrt-adguardhome.git package/diy/openwrt-adguardhome
+#git clone https://github.com/rufengsuixing/luci-app-adguardhome.git  package/diy/luci-app-adguardhome
+#sed -i '/resolvfile=/d' package/diy/luci-app-adguardhome/root/etc/init.d/AdGuardHome
+#sed -i 's/DEPENDS:=/DEPENDS:=+AdGuardHome /g' package/diy/luci-app-adguardhome/Makefile
+
+#svn export --force https://github.com/immortalwrt/luci/branches/openwrt-18.06/applications/luci-app-adguardhome package/diy/luci-app-adguardhome安装不上，使用lienol的
+#svn export --force https://github.com/immortalwrt/packages/branches/openwrt-18.06/net/adguardhome package/diy/adguardhome
+#svn export --force https://github.com/Lienol/openwrt-package/branches/other/luci-app-adguardhome  package/diy/luci-app-adguardhome
+#sed -i 's/DEPENDS:=/DEPENDS:=+AdGuardHome /g' package/diy/luci-app-adguardhome/Makefile
+#svn export --force https://github.com/Lienol/openwrt-packages/branches/19.07/net/adguardhome package/diy/adguardhome
+
+
+
+#清楚kidd库里的eqos和ikoolproxy和clash，用我自己的
+git clone https://github.com/yaof2/luci-app-eqos.git package/diy/luci-app-eqos
+git clone https://github.com/yaof2/luci-app-ikoolproxy.git package/diy/luci-app-ikoolproxy
+
+#mosdns
+svn co https://github.com/QiuSimons/openwrt-mos/trunk/luci-app-mosdns package/diy/luci-app-mosdns
+svn co https://github.com/QiuSimons/openwrt-mos/trunk/mosdns package/diy/mosdns
+
+git clone https://github.com/destan19/OpenAppFilter.git package/diy/OpenAppFilter
+#argon主题
+git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git package/diy/luci-theme-argon
+
+#重启计划
+svn co https://github.com/sirpdboy/diy/trunk/luci-app-rebootschedule package/diy/luci-app-rebootschedule
+
+#增加固件源码来源（只适合luci18系列，即E和N以及D系列，lean的只能用immortalwrt的）
+#rm -Rf package/lean/autocore
+#svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/autocore package/diy/autocore
+#sed -i '/Load Average/i\\t\t<tr><td width="33%"><%:固件源码%></td><td><a href="https://github.com/coolsnowwolf/lede"><%:感谢Lean大神对OpenWrt的开源贡献！%></a></td></tr>' package/diy/autocore/files/x86/index.htm
+
+rm -Rf package/lean/autocore
+svn export --force https://github.com/immortalwrt/immortalwrt/branches/openwrt-18.06/package/emortal/autocore package/diy/autocore
+sed -i '/Load Average/i\\t\t<tr><td width="33%"><%:固件源码%></td><td><a href="https://github.com/coolsnowwolf/lede"><%:感谢Lean大神对OpenWrt的开源贡献！%></a></td></tr>' package/diy/autocore/files/generic/index.htm
+  
+
+#git clone https://github.com/destan19/OpenAppFilter.git package/diy/OpenAppFilter
+
+# 京东签到 By Jerrykuku
+git clone --depth 1 https://github.com/jerrykuku/node-request.git package/new/node-request
+git clone --depth 1 https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/new/luci-app-jd-dailybonus
+
+# 网易云音乐解锁
+#git clone -b js --depth 1 https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+git clone https://github.com/UnblockNeteaseMusic/luci-app-unblockneteasemusic.git package/new/UnblockNeteaseMusic
+
+#管控
+svn export --force https://github.com/Lienol/openwrt-package/trunk/luci-app-control-webrestriction package/diy/luci-app-control-webrestriction
+#svn export --force https://github.com/Lienol/openwrt-package/trunk/luci-app-control-timewol package/diy/luci-app-control-timewol无法运行
+svn export --force https://github.com/Lienol/openwrt-package/trunk/luci-app-control-weburl package/diy/luci-app-control-weburl
+svn export --force https://github.com/Lienol/openwrt-package/trunk/luci-app-timecontrol package/diy/luci-app-timecontrol
+
+
+#svn co https://github.com/brvphoenix/wrtbwmon/trunk/wrtbwmon package/wrtbwmon
+#svn co https://github.com/brvphoenix/luci-app-wrtbwmon/trunk/luci-app-wrtbwmon package/luci-app-wrtbwmon
+
+#openclash
+#sed -i '$a src-git openclash https://github.com/vernesong/OpenClash.git' feeds.conf.default
+svn export --force https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
+svn export --force https://github.com/openwrt/packages/branches/openwrt-21.02/libs/libcap  package/diy/libcap
+svn export --force https://github.com/openwrt/packages/branches/openwrt-21.02/lang/ruby  package/diy/ruby
+# 添加内核
+#wget https://github.com/vernesong/OpenClash/releases/download/Clash/clash-linux-amd64.tar.gz&&tar -zxvf *.tar.gz
+wget https://raw.githubusercontent.com/vernesong/OpenClash/master/core-lateset/dev/clash-linux-amd64.tar.gz&&tar -zxvf *.tar.gz
+chmod 0755 clash
+rm -rf *.tar.gz&&mkdir -p package/base-files/files/etc/openclash/core&&mv clash package/base-files/files/etc/openclash/core
+
+svn co https://github.com/kiddin9/openwrt-packages/trunk/r8101  package/diy/r8101
+svn co https://github.com/kiddin9/openwrt-packages/trunk/r8125  package/diy/r8125
+svn co https://github.com/kiddin9/openwrt-packages/trunk/r8168  package/diy/r8168 
+#svn co https://github.com/kiddin9/openwrt-packages/trunk/rtl8821cu package/diy/rtl8821cu 编译不成功，取消
+#svn co https://github.com/kiddin9/openwrt-packages/trunk/rtl88x2bu  package/diy/rtl88x2bu
+
+
+#git clone -b lede https://github.com/pymumu/luci-app-smartdns.git package/diy/luci-app-smartdns
+#git clone https://github.com/pymumu/openwrt-smartdns.git package/diy/smartdns
+
+#svn co https://github.com/brvphoenix/wrtbwmon/trunk/wrtbwmon package/wrtbwmon
+#svn co https://github.com/brvphoenix/luci-app-wrtbwmon/trunk/luci-app-wrtbwmon package/luci-app-wrtbwmon
+
+git clone https://github.com/rufengsuixing/luci-app-zerotier package/diy/luci-app-zerotier
+
+
+#克隆ssr
+#sed -i '$a src-git helloworld https://github.com/fw876/helloworld' feeds.conf.default
+
+./scripts/feeds update -a
+./scripts/feeds install -a
+./scripts/feeds install -a
+
+
+# 内核显示增加自己个性名称(21.3.2 %y : 年份的最后两位数字)
+date=`date +%y.%m.%d`
+sed -i "s/DISTRIB_DESCRIPTION.*/DISTRIB_DESCRIPTION='YAOF Dev%C From Lean Openwrt %V'/g" package/base-files/files/etc/openwrt_release
+sed -i "s/# REVISION:=x/REVISION:= $date/g" include/version.mk

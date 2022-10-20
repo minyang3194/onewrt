@@ -1,0 +1,290 @@
+#
+# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+# https://github.com/P3TERX/Actions-OpenWrt
+# Description: Build OpenWrt using GitHub Actions
+#
+
+name: Build OpenWrt
+
+on: 
+  #push:
+    # 文件改变才会触发
+       #paths:
+        #- 'diy-lean/package/lean/default-settings/files/zzz-default-settings'
+  # 分支master提交时触发
+     # branches:
+     #  - master     
+ # 仅在有以 'v' 开头的tag push 时才会触发
+     #tags:
+      # - v* 
+ # 定时才会触发
+  #schedule:
+    #- cron: 0 16 * * 5
+# 点击star才会触发    
+  watch:
+      types: [started]
+      
+
+#on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede222
+  REPO_BRANCH: master
+  REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: .config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_COWTRANSFER: false
+  UPLOAD_WETRANSFER: false
+  UPLOAD_RELEASE: false
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+          fetch-depth: 0
+      
+    - name: Show system
+      run: |
+        echo -e "Total CPU cores\t: $(nproc)"
+        cat /proc/cpuinfo | grep 'model name'
+        ulimit -a
+
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+
+    - name: Prepare Mixedwrt
+      run: |
+        sudo chown -R runner:runner /home/runner/work/YAOF
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
+    - name: Prepare Package
+      run: |
+        cd openwrt
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
+        /bin/bash 04_remove_upx.sh
+    - name: Convert Translation
+      run: |
+        cd openwrt
+        /bin/bash 03_convert_translation.sh
+    - name: Add ACL
+      run: |
+        cd openwrt
+        /bin/bash 05_create_acl_for_luci.sh -a
+
+    - name: Load custom configuration
+      run: |
+        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
+        cd openwrt
+        echo "Apply files..."
+        if [ -n "$(ls -A "devices/common/files" 2>/dev/null)" ]; then
+        cp -rf devices/common/files files
+        fi
+        if [ -n "$(ls -A "devices/${{matrix.target}}/files" 2>/dev/null)" ]; then
+        cp -rf devices/${{matrix.target}}/files/* files/
+        fi 
+        echo "Apply diy..."
+        chmod +x devices/common/diy.sh
+        /bin/bash "devices/common/diy.sh"
+        if [ -f "devices/x86-64/diy.sh" ]; then
+          chmod +x devices/x86-64/diy.sh
+          /bin/bash "devices/x86-64/diy.sh"
+        fi
+        echo "Apply diy package and default-settings..."
+        cp -Rf devices/common/diy/* ./
+        
+        if [ -f "devices/common/default-settings" ]; then
+        cp -f devices/common/default-settings package/emortal/default-settings/files/99-default-settings
+        fi
+        if [ -f "devices/common/x86-64/default-settings" ]; then
+        cat devices/common/x86-64/default-settings >> package/emortal/default-settings/files/99-default-settings
+        fi
+    - name: Make Config
+      run: |
+        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
+        cd openwrt
+        echo "Apply config..."
+        #cp -rf ../SEED/x86-64/config.seed .config
+        cp -f devices/common/x86-64/config.seed .config
+        
+        cp -f devices/common/.config .config
+        if [ -f "devices/x86-64/x64.config" ]; then
+          echo >> .config
+          cat devices/x86-64/x64.config >> .config
+        fi
+        
+        #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
+        make defconfig  
+    - name: Apply patches
+      run: |
+        cd openwrt
+        find "devices/common/patches" -type f ! -name 'china_mirrors.patch' -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' --no-backup-if-mismatch --merge -p1 -E --forward"
+        if [ -n "$(ls -A "devices/x86-64/patches" 2>/dev/null)" ]; then
+          find "devices/x86-64/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' --no-backup-if-mismatch --merge -p1 -E --forward"
+        fi 
+    - name: Get Architecture
+      working-directory: ${{ github.workspace }}/openwrt
+      run: |
+        TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | awk -F '_' '{print $1}')"
+        echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}" >>$GITHUB_ENV
+        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+\-*r*c*[0-9]*.tar.gz" | sed -n '/[2-9][0-9]/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
+        echo "latest_release=${latest_release}" >>$GITHUB_ENV 
+    - name: Cache
+      uses: HiGarfield/cachewrtbuild@main
+      with:
+        mixkey: ${{ env.TARGET_DEVICE_ARCH }}
+        prefix: ${{ github.workspace }}/openwrt
+    - name: Make Download
+      run: |
+        cd openwrt
+        make download -j50
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;	
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 || make -j1 V=s
+        echo "::set-output name=status::success"
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV  
+    - name: If Error
+      if: steps.compileopenwrt.outcome == 'failure'
+      run: |
+        cat openwrt/.config
+        echo '================================================================'
+        cd openwrt && make -j1 V=s
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT   
+    #- name: Print Disk Space After
+      #run: df -h
+    - name: Upload bin directory
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: openwrt/bin
+    - name: Organize files
+      id: organize
+      run: |
+        rm -rf ./artifact/
+        mkdir -p ./artifact/
+        mv openwrt/bin/targets/x86/64/*combined-efi.img* ./artifact/
+        cp openwrt/.config  ./artifact/x64.config
+        cd ./artifact/
+        ls -Ahl
+        gzip -d *.config
+        gzip -d *.gz && exit 0
+        gzip --best *.img
+        ls -Ahl
+        sha256sum openwrt*x86* | tee $(date +%Y-%m-%d)-OneWRT-X86-64-${{ env.latest_release }}.sha256sum
+        zip $(date +%Y-%m-%d)-OneWRT-X86-64-${{ env.latest_release }}-ext4.zip *ext4-combined*
+        zip $(date +%Y-%m-%d)-OneWRT-X86-64-${{ env.latest_release }}-squashfs.zip *squashfs-combined*
+        ls -Ahl
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "::set-output name=status::success"
+    #- name: Upload artifact
+      #uses: actions/upload-artifact@main
+      #with:
+        #name: OpenWRT_${{ env.latest_release }}
+        #path: ./artifact/
+    - name: Upload artifact	
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: OneWrt_${{ env.DEVICE_NAME }}_${{ env.latest_release }}_${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+    - name: Upload firmware to cowtransfer
+      id: cowtransfer
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+    - name: Upload firmware to WeTransfer
+      id: wetransfer
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+        echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")" 
+    - name: Generate release tag
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
+        touch release.txt
+        [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
+        [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
+        echo "::set-output name=status::success"
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
+    #- name: Create release
+      #id: create_release
+      #uses: ncipollo/release-action@main
+      #with:
+        #name: YAOF-${{ env.latest_release }}
+        #allowUpdates: true
+        #prerelease: false
+        #tag: ${{ env.latest_release }}
+        #commit: 22.03
+        #replacesArtifacts: true
+        #token: ${{ secrets.REPO_TOKEN }}
+        #artifacts: ./artifact/*.zip
+    - name: Delete workflow runs
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 1
+        keep_minimum_runs: 3
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        keep_latest: 3
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}

@@ -1,0 +1,17 @@
+config samba
+	option 'name'			'YAOF'
+	option 'workgroup'		'WORKGROUP'
+	option 'description'		'Yet Another Openwrt Firmware'
+	option 'homes'			'1'
+
+
+config sambashare
+	option auto '1'
+	option name 'root'
+	option path '/'
+	option read_only 'no'
+	option guest_ok 'yes'
+	option create_mask '0755'
+	option dir_mask '0755'
+	option device 'sda1'
+	option browseable 'yes'
