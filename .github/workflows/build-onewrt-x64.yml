@@ -8,7 +8,7 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt
+name: build-onewrt-x64
 
 on: 
   #push:
@@ -28,7 +28,6 @@ on:
   watch:
       types: [started]
       
-
 #on:
   repository_dispatch:
   workflow_dispatch:
