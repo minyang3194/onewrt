@@ -106,10 +106,9 @@ jobs:
         cp -f ./openwrt_release/version.date ./openwrt/version.date
         cp -rf ./openwrt_release/target/linux/* ./openwrt/target/linux/
         cp -rf ./openwrt_release/package/kernel/linux/* ./openwrt/package/kernel/linux/
+  
         
-        sudo chown -R runner:runner /home/runner/work/onewrt
-        
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/onewrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         
         #cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         #cp -r ./SCRIPTS/. ./
@@ -119,6 +118,7 @@ jobs:
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         chmod +x SCRIPTS/02_prepare_package.sh
         chmod +x SCRIPTS/02_target_only.sh
