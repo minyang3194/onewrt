@@ -74,18 +74,19 @@ jobs:
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
+        sudo mkdir -p /onewrt
+        sudo chown $USER:$GROUPS /home/runner/work/onewrt
 
     - name: Prepare Mixedwrt
+      working-directory: /home/runner/work/onewrt
       run: |
-        sudo chown -R runner:runner /home/runner/work/onewrt
+        #sudo chown -R runner:runner /home/runner/work/onewrt
         cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
         
         
-        ln -sf /work/onewrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /home/runner/work/onewrt $GITHUB_WORKSPACE/openwrt
 
     - name: Prepare Package
       run: |
