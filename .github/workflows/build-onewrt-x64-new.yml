@@ -77,21 +77,15 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
 
-    - name: Clone source code
-      working-directory: /workdir
+    - name: Prepare Mixedwrt
       run: |
-        df -hT $PWD
-        #git clone $REPO_URL -b $REPO_BRANCH openwrt
-        
         sudo chown -R runner:runner /home/runner/work/onewrt
-        
-        
         cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         cp -r ./SCRIPTS/. ./
         /bin/bash 01_get_ready.sh
         
         
-        ln -sf /workd/onewrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /work/onewrt $GITHUB_WORKSPACE/openwrt
 
     - name: Prepare Package
       run: |
