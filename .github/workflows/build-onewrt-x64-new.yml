@@ -107,7 +107,9 @@ jobs:
         cp -rf ./openwrt_release/target/linux/* ./openwrt/target/linux/
         cp -rf ./openwrt_release/package/kernel/linux/* ./openwrt/package/kernel/linux/
         
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        sudo chown -R runner:runner /home/runner/work/onewrt
+        
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/onewrt
         
         #cp -r ./SCRIPTS/X86/. ./SCRIPTS/
         #cp -r ./SCRIPTS/. ./
