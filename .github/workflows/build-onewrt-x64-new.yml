@@ -75,10 +75,10 @@ jobs:
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
+        sudo chown $USER:$GROUPS /workdir/openwr
 
     - name: Clone source code
-      working-directory: /workdir
+      working-directory: /workdir/openwr
       run: |
         df -hT $PWD
         #git clone $REPO_URL -b $REPO_BRANCH openwrt
