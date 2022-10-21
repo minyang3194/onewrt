@@ -83,16 +83,11 @@ jobs:
 
     - name: Prepare Mixedwrt
       run: |
-        #sudo chown -R runner:runner /home/runner/work/onewrt
-        #cp -r ./SCRIPTS/X86/. ./SCRIPTS/
-        #cp -r ./SCRIPTS/. ./
-        #/bin/bash 01_get_ready.sh
-        
         sudo chown -R runner:runner /home/runner/work/onewrt
-        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
-        cd openwrt
-        chmod +x SCRIPTS/01_get_ready.sh
-        /bin/bash "SCRIPTS/01_get_ready.sh"  
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
+          
     - name: Prepare Package
       run: |
         #cd openwrt
