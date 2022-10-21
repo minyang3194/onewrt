@@ -118,21 +118,12 @@ jobs:
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         cd openwrt
-        #$GITHUB_WORKSPACE/$DIY_P1_SH
-        
-        cd openwrt
-        chmod +x SCRIPTS/02_prepare_package.sh
-        chmod +x SCRIPTS/02_target_only.sh
-        chmod +x SCRIPTS/04_remove_upx.sh
-        chmod +x SCRIPTS/03_convert_translation.sh
-        chmod +x SCRIPTS/05_create_acl_for_luci.sh
-        
-        
-        $GITHUB_WORKSPACE/SCRIPTS/02_prepare_package.sh
-        $GITHUB_WORKSPACE/SCRIPTS/02_target_only.sh
-        $GITHUB_WORKSPACE/SCRIPTS/04_remove_upx.sh
-        $GITHUB_WORKSPACE/SCRIPTS/03_convert_translation.sh
-        $GITHUB_WORKSPACE/SCRIPTS/05_create_acl_for_luci.sh -a
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
+        /bin/bash 04_remove_upx.sh
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
