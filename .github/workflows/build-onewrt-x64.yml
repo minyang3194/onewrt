@@ -25,8 +25,8 @@ on:
   #schedule:
     #- cron: 0 16 * * 5
 # 点击star才会触发    
-  watch:
-      types: [started]
+  #watch:
+      #types: [started]
       
 #on:
   repository_dispatch:
