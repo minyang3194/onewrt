@@ -84,13 +84,9 @@ jobs:
         #git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         
-        #cp -r ./SCRIPTS/X86/. ./SCRIPTS/
-        #cp -r ./SCRIPTS/. ./
-        #/bin/bash 01_get_ready.sh
-        
-        cd openwrt
-        chmod +x SCRIPTS/01_get_ready.sh
-        $GITHUB_WORKSPACE/SCRIPTS/01_get_ready.sh
+        cp -r ./SCRIPTS/X86/. ./SCRIPTS/
+        cp -r ./SCRIPTS/. ./
+        /bin/bash 01_get_ready.sh
         
 
     - name: Load custom feeds
@@ -303,3 +299,4 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
