@@ -83,7 +83,7 @@ jobs:
         df -hT $PWD
         #git clone $REPO_URL -b $REPO_BRANCH openwrt
         
-        sudo chown -R runner:runner /home/runner/workdir/onewrt
+        sudo chown -R runner:runner /home/runner/work/onewrt
         
         
         cp -r ./SCRIPTS/X86/. ./SCRIPTS/
@@ -91,7 +91,7 @@ jobs:
         /bin/bash 01_get_ready.sh
         
         
-        ln -sf /workdir/onewrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /workd/onewrt $GITHUB_WORKSPACE/openwrt
 
     - name: Prepare Package
       run: |
