@@ -90,35 +90,22 @@ jobs:
           
     - name: Prepare Package
       run: |
-        #cd openwrt
-        #cp -r ../SCRIPTS/. ./
-        #/bin/bash 02_prepare_package.sh
-        #/bin/bash 02_target_only.sh
-        #/bin/bash 04_remove_upx.sh
-        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
-        chmod +x SCRIPTS/02_prepare_package.sh
-        /bin/bash "SCRIPTS/02_prepare_package.sh"
-        chmod +x SCRIPTS/X86/02_target_only.sh
-        /bin/bash "SCRIPTS/X86/02_target_only.sh"
-        chmod +x SCRIPTS/04_remove_upx.sh
-        /bin/bash "SCRIPTS/04_remove_upx.sh"
+        cp -r ../SCRIPTS/. ./
+        /bin/bash 02_prepare_package.sh
+        /bin/bash 02_target_only.sh
+        /bin/bash 04_remove_upx.sh
+        
     - name: Convert Translation
       run: |
-        #cd openwrt
-        #/bin/bash 03_convert_translation.sh
-        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
-        chmod +x SCRIPTS/03_convert_translation.sh
-        /bin/bash "SCRIPTS/03_convert_translation.sh"
+        /bin/bash 03_convert_translation.sh
+     
     - name: Add ACL
       run: |
-        #cd openwrt
-        #/bin/bash 05_create_acl_for_luci.sh -a
-        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
-        chmod +x SCRIPTS/05_create_acl_for_luci.sh
-        /bin/bash "SCRIPTS/05_create_acl_for_luci.sh" -a
+        /bin/bash 05_create_acl_for_luci.sh -a
+        
     - name: Load custom configuration
       run: |
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
@@ -232,6 +219,7 @@ jobs:
         ls -Ahl
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
+        
     #- name: Upload artifact
       #uses: actions/upload-artifact@main
       #with:
