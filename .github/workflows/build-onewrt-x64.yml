@@ -91,9 +91,7 @@ jobs:
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         chmod +x SCRIPTS/01_get_ready.sh
-        /bin/bash "SCRIPTS/01_get_ready.sh"
-        
-       
+        /bin/bash "SCRIPTS/01_get_ready.sh"  
     - name: Prepare Package
       run: |
         #cd openwrt
@@ -101,34 +99,30 @@ jobs:
         #/bin/bash 02_prepare_package.sh
         #/bin/bash 02_target_only.sh
         #/bin/bash 04_remove_upx.sh
-        
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         chmod +x SCRIPTS/02_prepare_package.sh
         /bin/bash "SCRIPTS/02_prepare_package.sh"
-        
         chmod +x SCRIPTS/X86/02_target_only.sh
         /bin/bash "SCRIPTS/X86/02_target_only.sh"
-        
         chmod +x SCRIPTS/04_remove_upx.sh
         /bin/bash "SCRIPTS/04_remove_upx.sh"
-        
-        
     - name: Convert Translation
       run: |
+        #cd openwrt
+        #/bin/bash 03_convert_translation.sh
+        cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
-        /bin/bash 03_convert_translation.sh
+        chmod +x SCRIPTS/03_convert_translation.sh
+        /bin/bash "SCRIPTS/03_convert_translation.sh"
     - name: Add ACL
       run: |
         #cd openwrt
         #/bin/bash 05_create_acl_for_luci.sh -a
-        
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         chmod +x SCRIPTS/05_create_acl_for_luci.sh
         /bin/bash "SCRIPTS/05_create_acl_for_luci.sh" -a
-        
-
     - name: Load custom configuration
       run: |
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
@@ -161,22 +155,13 @@ jobs:
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         echo "Apply config..."
-        cp -rf ../SEED/X86/config.seed .config
-        
-<<<<<<< HEAD
+        #cp -rf ../SEED/x86-64/config.seed .config
         cp -f devices/x86-64/x64.config .config
-        
         
         #cp -f devices/common/.config .config
         #if [ -f "devices/x86-64/x64.config" ]; then
           #echo >> .config
           #cat devices/x86-64/x64.config >> .config
-=======
-        #cp -f devices/common/.config .config
-        #if [ -f "devices/x86-64/x64.config" ]; then
-          #echo >> .config
-         # cat devices/x86-64/x64.config >> .config
->>>>>>> ade5ab584d49b976fbbcb000eead21e313a9275c
         #fi
         
         #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
@@ -239,7 +224,7 @@ jobs:
         rm -rf ./artifact/
         mkdir -p ./artifact/
         mv openwrt/bin/targets/x86/64/*combined-efi.img* ./artifact/
-        mv openwrt/.config  ./artifact/
+        cp openwrt/.config  ./artifact/x64.config
         cd ./artifact/
         ls -Ahl
         gzip -d *.config
