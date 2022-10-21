@@ -161,8 +161,9 @@ jobs:
         cp -Rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` openwrt
         cd openwrt
         echo "Apply config..."
-        #cp -rf ../SEED/x86-64/config.seed .config
+        cp -rf ../SEED/X86/config.seed .config
         
+<<<<<<< HEAD
         cp -f devices/x86-64/x64.config .config
         
         
@@ -170,6 +171,12 @@ jobs:
         #if [ -f "devices/x86-64/x64.config" ]; then
           #echo >> .config
           #cat devices/x86-64/x64.config >> .config
+=======
+        #cp -f devices/common/.config .config
+        #if [ -f "devices/x86-64/x64.config" ]; then
+          #echo >> .config
+         # cat devices/x86-64/x64.config >> .config
+>>>>>>> ade5ab584d49b976fbbcb000eead21e313a9275c
         #fi
         
         #echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config
@@ -232,7 +239,7 @@ jobs:
         rm -rf ./artifact/
         mkdir -p ./artifact/
         mv openwrt/bin/targets/x86/64/*combined-efi.img* ./artifact/
-        cp openwrt/.config  ./artifact/x64.config
+        mv openwrt/.config  ./artifact/
         cd ./artifact/
         ls -Ahl
         gzip -d *.config
