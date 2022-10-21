@@ -223,7 +223,6 @@ jobs:
         cp openwrt/.config  ./artifact/x64.config
         cd ./artifact/
         ls -Ahl
-        gzip -d *.config
         gzip -d *.gz && exit 0
         gzip --best *.img
         ls -Ahl
