@@ -88,8 +88,8 @@ jobs:
         #cp -r ./SCRIPTS/. ./
         #/bin/bash 01_get_ready.sh
         
-        chmod +x ./SCRIPTS/01_get_ready.sh
         cd openwrt
+        chmod +x SCRIPTS/01_get_ready.sh
         $GITHUB_WORKSPACE/SCRIPTS/01_get_ready.sh
         
 
@@ -100,13 +100,14 @@ jobs:
         cd openwrt
         #$GITHUB_WORKSPACE/$DIY_P1_SH
         
+        cd openwrt
         chmod +x SCRIPTS/02_prepare_package.sh
         chmod +x SCRIPTS/02_target_only.sh
         chmod +x SCRIPTS/04_remove_upx.sh
         chmod +x SCRIPTS/03_convert_translation.sh
         chmod +x SCRIPTS/05_create_acl_for_luci.sh
         
-        cd openwrt
+        
         $GITHUB_WORKSPACE/SCRIPTS/02_prepare_package.sh
         $GITHUB_WORKSPACE/SCRIPTS/02_target_only.sh
         $GITHUB_WORKSPACE/SCRIPTS/04_remove_upx.sh
